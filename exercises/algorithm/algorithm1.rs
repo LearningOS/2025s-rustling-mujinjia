@@ -2,7 +2,6 @@
     single linked list merge
     This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 // use std::collections::LinkedList;
 use std::fmt::{self, Display, Formatter};
@@ -27,13 +26,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T: Sized + std::cmp::PartialOrd> Default for LinkedList<T> {
+impl<T: Sized + std::cmp::PartialOrd + std::fmt::Debug> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Sized + std::cmp::PartialOrd> LinkedList<T> {
+impl<T: Sized + std::cmp::PartialOrd + std::fmt::Debug> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -81,9 +80,9 @@ impl<T: Sized + std::cmp::PartialOrd> LinkedList<T> {
                 (Some(mut a_node_ptr), Some(mut b_node_ptr)) => {
                     let mut a_node = unsafe { &mut *a_node_ptr.as_mut() };
                     let mut b_node = unsafe { &mut *b_node_ptr.as_mut() };
+                    let mut node_ptr: Option<NonNull<Node<T>>> = None;
                     if a_node.val < b_node.val {
-                        // if PartialOrd::lt((*a_node.as_ptr()).val, (*b_node.as_ptr()).val) {
-                        if Some(b_node_ptr) == list_a.end {
+                        if Some(a_node_ptr) == list_a.end {
                             list_a.start = None;
                             list_a.end = None;
                         } else {
@@ -91,14 +90,7 @@ impl<T: Sized + std::cmp::PartialOrd> LinkedList<T> {
                         }
                         list_a.length -= 1;
                         a_node.next = None;
-                        if let Some(end) = list_a.end {
-                            unsafe {
-                                (*end.as_ptr()).next = Some(a_node_ptr);
-                            }
-                        } else {
-                            new_list.start = Some(a_node_ptr);
-                            new_list.end = Some(a_node_ptr);
-                        }
+                        node_ptr = Some(a_node_ptr);
                     } else {
                         if Some(b_node_ptr) == list_b.end {
                             list_b.start = None;
@@ -108,29 +100,34 @@ impl<T: Sized + std::cmp::PartialOrd> LinkedList<T> {
                         }
                         list_b.length -= 1;
                         b_node.next = None;
-                        if let Some(end) = list_b.end {
-                            unsafe {
-                                (*end.as_ptr()).next = Some(b_node_ptr);
-                            }
-                        } else {
-                            new_list.start = Some(b_node_ptr);
-                            new_list.end = Some(b_node_ptr);
-                        }
+                        node_ptr = Some(b_node_ptr);
                     }
+                    if let Some(end) = new_list.end {
+                        unsafe {
+                            (*end.as_ptr()).next = node_ptr;
+                        }
+                    } else {
+                        new_list.start = node_ptr;
+                    }
+                    new_list.end = node_ptr;
                 }
                 (Some(_), None) => {
-                    if let Some(end) = new_list.end {
+                    if let Some(mut end) = new_list.end {
                         unsafe {
-                            (*end.as_ptr()).next = list_a.start;
+                            (*end.as_mut()).next = list_a.start;
                         }
+                        new_list.end = list_a.end;
                     }
+                    break;
                 }
                 (None, Some(_)) => {
-                    if let Some(end) = new_list.end {
+                    if let Some(mut end) = new_list.end {
                         unsafe {
-                            (*end.as_ptr()).next = list_b.start;
+                            (*end.as_mut()).next = list_b.start;
                         }
+                        new_list.end = list_b.end;
                     }
+                    break;
                 }
                 (None, None) => {
                     break;
