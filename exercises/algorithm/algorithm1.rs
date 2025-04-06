@@ -26,13 +26,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T: Sized + std::cmp::PartialOrd + std::fmt::Debug> Default for LinkedList<T> {
+impl<T: std::cmp::Ord> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Sized + std::cmp::PartialOrd + std::fmt::Debug> LinkedList<T> {
+impl<T: std::cmp::Ord> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,

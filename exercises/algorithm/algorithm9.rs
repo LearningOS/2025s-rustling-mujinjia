@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -23,6 +22,7 @@ where
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
             count: 0,
+            // 给一个默认值是为了偏移下标
             items: vec![T::default()],
             comparator,
         }
@@ -37,7 +37,27 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        if self.count == 1 {
+            return;
+        }
+        let mut idx = self.count;
+        let mut pdx = self.parent_idx(idx);
+        while pdx > 0 {
+            match (self.items.get(idx), self.items.get(pdx)) {
+                (Some(v), Some(p)) => {
+                    if (self.comparator)(v, p) {
+                        self.items.swap(idx, pdx);
+                        idx = pdx;
+                        pdx = self.parent_idx(idx);
+                    } else {
+                        break;
+                    }
+                }
+                _ => break,
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +77,18 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        // 查找给定 idx 的直接子孩子中最值的下标
+        if self.right_child_idx(idx) > self.count {
+            self.left_child_idx(idx)
+        } else {
+            let ldx = self.left_child_idx(idx);
+            let rdx = self.right_child_idx(idx);
+            if (self.comparator)(&self.items[ldx], &self.items[rdx]) {
+                ldx
+            } else {
+                rdx
+            }
+        }
     }
 }
 
@@ -84,8 +114,23 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+        let mut idx = 1;
+        let next = self.items.swap_remove(idx);
+        self.count -= 1;
+        if !self.is_empty() {
+            while self.children_present(idx) {
+                let cdx = self.smallest_child_idx(idx);
+                if !(self.comparator)(&self.items[idx], &self.items[cdx]) {
+                    self.items.swap(idx, cdx);
+                }
+                idx = cdx;
+            }
+        }
+
+        Some(next)
     }
 }
 
